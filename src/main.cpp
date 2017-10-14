@@ -143,20 +143,19 @@ bool isTransition(const std::string & input)
 	if (len < 4)
 		return false;
 
-	if (s.find("CUT TO BLACK") != string::npos)
-		return true;
+	const char * transitions[] = {
+		"CUT TO BLACK",
+		"INTERCUT WITH:",
+		"FADE IN:",
+		"TITLE OVER:",
+		"SPLIT SCREEN:",
+		"OPENING CREDITS",
+		"END CREDITS"
+	};
 
-	if (s.find("INTERCUT WITH:") != string::npos)
-		return true;
-
-	if (s.find("FADE IN:") != string::npos)
-		return true;
-
-	if (s.find("TITLE OVER:") != string::npos)
-		return true;
-
-	if (s[len] != ':')
-		return false;
+	for (auto str : transitions)
+		if (s.find(str) != string::npos)
+			return true;
 
 	string end = s.substr(len - 3, len - 2);
 	return beginsWith(end, " TO") || beginsWith(end, " IN");
