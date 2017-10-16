@@ -6,19 +6,26 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 namespace lab
 {
+
+	namespace filesystem = std::experimental::filesystem;
 
 enum class NodeKind
 {
 	KeyValue,
 	Divider,
-	Character, Action, Location, Dialog, Direction, Transition
+	Character, Action, Location, Dialog, Direction, Transition,
+	Unknown
 };
 
 struct ScriptNode
 {
+	ScriptNode() = default;
+	~ScriptNode() = default;
+
     ScriptNode(NodeKind kind, const std::string& content) : kind(kind), content(content) {}
 	ScriptNode(NodeKind kind, const std::string& key, const std::string& content) : kind(kind), key(key), content(content) {}
 	ScriptNode(const ScriptNode & rh) : kind(rh.kind), key(rh.key), content(rh.content) {}
@@ -30,7 +37,7 @@ struct ScriptNode
 		content = rh.content;
 	}
 
-    NodeKind kind;
+	NodeKind kind = NodeKind::Unknown;
 	std::string key;
     std::string content;
 
@@ -61,6 +68,9 @@ struct Script
 	std::set<std::string> characters;
 	std::set<std::string> sets;
 	std::vector<Sequence> sequences;
+
+	static Script parseFountain(const std::string& fountainFile);
+	static Script parseFountain(const filesystem::path& fountainFile);
 };
 
 } // lab

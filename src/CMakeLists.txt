@@ -16,7 +16,9 @@ target_include_directories(LabScreenplay PRIVATE "${LOCAL_ROOT}/include")
 #target_include_directories(LabScreenplay PRIVATE "${LABSCREENPLAY_ROOT}/include")
 
 target_link_libraries(LabScreenplay debug
-    ${LABTEXT_LIBRARIES})
+    ${LABTEXT_DEBUG_LIBRARIES})
+
+message(info ${LABTEXT_DEBUG_LIBRARIES})
 
 target_link_libraries(LabScreenplay optimized
     ${LABTEXT_LIBRARIES})
