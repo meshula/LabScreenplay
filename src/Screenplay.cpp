@@ -272,7 +272,7 @@ namespace lab
 		void start_node(NodeKind kind, const std::string& value)
 		{
 			finalize_current_node();
-			curr_node = { kind, value };
+			curr_node = { kind, value, "" };
 
 			if (kind == NodeKind::Dialog)
 			{
@@ -286,6 +286,7 @@ namespace lab
 			{
 				curr_sequence->nodes.push_back(curr_node);
 				curr_node.kind = NodeKind::Unknown;
+				curr_node.key = "";
 				curr_node.content = "";
 			}
 		}
@@ -319,7 +320,8 @@ namespace lab
 		ScriptEdit edit = { &script, &script.title };
 		std::vector<std::string> lines = TextScanner::SplitLines(text);
 
-		const char* title_page_tags[] = {
+		const char* title_page_tags[] = 
+		{
 			"Title:", "Credit:", "Author:", "Source:", "Draft Date:",
 			"Notes:", "Contact:", "Copyright:"
 		};
@@ -358,7 +360,7 @@ namespace lab
 
 			if (isTransition(s))
 			{
-				edit.start_node(NodeKind::Transition, parseTransition(s));
+				edit.start_node(NodeKind::Transition, ToUpper(parseTransition(s)));
 				edit.finalize_current_node();
 				continue;
 			}
