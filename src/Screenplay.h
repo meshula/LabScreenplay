@@ -30,11 +30,19 @@ struct ScriptNode
 	ScriptNode(NodeKind kind, const std::string& key, const std::string& content) : kind(kind), key(key), content(content) {}
 	ScriptNode(const ScriptNode & rh) : kind(rh.kind), key(rh.key), content(rh.content) {}
     ScriptNode(ScriptNode && rh) : kind(rh.kind), key(rh.key), content(rh.content) {}
-	ScriptNode & operator=(ScriptNode && rh)
+	ScriptNode& operator=(ScriptNode && rh)
 	{
 		kind = rh.kind;
 		key = rh.key;
 		content = rh.content;
+		return *this;
+	}
+	ScriptNode& operator=(const ScriptNode & rh)
+	{
+		kind = rh.kind;
+		key = rh.key;
+		content = rh.content;
+		return *this;
 	}
 
 	NodeKind kind = NodeKind::Unknown;

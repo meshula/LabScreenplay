@@ -23,7 +23,7 @@ namespace lab
 		case NodeKind::Action: return content + "\n";
 		case NodeKind::Dialog: return key + "\n" + content;
 		case NodeKind::Direction: return content + "\n";
-		case NodeKind::Transition: return content + "\n";
+		case NodeKind::Transition: return ToUpper(content) + "\n";
 			break;
 		}
 
@@ -191,18 +191,20 @@ namespace lab
 		if (!input.length())
 			return false;
 
-		if (!lineIsUpperCase(input.c_str(), input.c_str() + input.length()))
-			return false;
-
 		string s = StripLeadingWhitespace(input);
 		size_t len = s.length() - 1;
 		if (len < 4)
 			return false;
 
+		if (s[0] == '>')
+			return true;
+
+		if (!lineIsUpperCase(input.c_str(), input.c_str() + input.length()))
+			return false;
+
 		const char * transitions[] = {
-			"> CUT TO:",
-			"> cut to:",
 			"CUT TO BLACK",
+			"cut to:",
 			"CUT TO:",
 			"INTERCUT WITH:",
 			"FADE IN:",
@@ -222,7 +224,11 @@ namespace lab
 
 	string parseTransition(const std::string & input)
 	{
-		return StripLeadingWhitespace(StripLeadingWhitespace(input));
+		string r = StripLeadingWhitespace(input);
+		if (r[0] == '>')
+			r = r.substr(1);
+
+		return StripTrailingWhitespace(StripLeadingWhitespace(r));
 	}
 
 	bool isDialog(const std::string & input)
@@ -257,108 +263,120 @@ namespace lab
 		return result;
 	}
 
-	Script Script::parseFountain(const std::string& text)
+	struct ScriptEdit
 	{
-		const bool escapes = false;
-		const bool emptyLines = true;
-		std::vector<std::string> lines = TextScanner::SplitLines(text);
+		Script* script = nullptr;
+		Sequence* curr_sequence = nullptr;
+		ScriptNode curr_node;
 
-		Script script;
-
-		size_t los = lines.size();
-		for (size_t i = 0; i < los; ++i)
+		void start_node(NodeKind kind, const std::string& value)
 		{
-			string s = StripLeadingWhitespace(lines[i]);
-			if (!s.length())
-				continue;
+			finalize_current_node();
+			curr_node = { kind, value };
 
-			if (beginsWith(s, "Title:")) {
-				// Title: Big Fish
-				string content = parseValue(s, lines, i);
-				script.title.nodes.emplace_back(ScriptNode(NodeKind::KeyValue, "Title", content));
-			}
-			else if (beginsWith(s, "Credit:")) {
-				// Credit: written by
-				string content = parseValue(s, lines, i);
-				script.title.nodes.emplace_back(ScriptNode(NodeKind::KeyValue, "Credit", content));
-			}
-			else if (beginsWith(s, "Author:")) {
-				// Credit: written by
-				string content = parseValue(s, lines, i);
-				script.title.nodes.emplace_back(ScriptNode(NodeKind::KeyValue, "Author", content));
-			}
-			else if (beginsWith(s, "Source:")) {
-				// Author: John August
-				string content = parseValue(s, lines, i);
-				script.title.nodes.emplace_back(ScriptNode(NodeKind::KeyValue, "Source", content));
-			}
-			else if (beginsWith(s, "Draft Date:")) {
-				string content = parseValue(s, lines, i);
-				script.title.nodes.emplace_back(ScriptNode(NodeKind::KeyValue, "Draft Date", content));
-			}
-			else if (beginsWith(s, "Notes:")) {
-				// Source: based on the novel by Daniel Wallace
-				string content = parseValue(s, lines, i);
-				script.title.nodes.emplace_back(ScriptNode(NodeKind::KeyValue, "Notes", content));
-			}
-			else if (beginsWith(s, "Contact:")) {
-				string content = parseValue(s, lines, i);
-				script.title.nodes.emplace_back(ScriptNode(NodeKind::KeyValue, "Contact", content));
-			}
-			else if (beginsWith(s, "Copyright:")) {
-				string content = parseValue(s, lines, i);
-				script.title.nodes.emplace_back(ScriptNode(NodeKind::KeyValue, "Copyright", content));
-			}
-			else if (beginsWith(s, "===")) {
-				if (script.sequences.size())
-					(*script.sequences.rbegin()).nodes.emplace_back(ScriptNode(NodeKind::Divider, s));
-				else
-					script.title.nodes.emplace_back(ScriptNode(NodeKind::Divider, s));
-			}
-			else if (isShot(s)) {
-				bool interior, exterior;
-				string content = parseShot(s, interior, exterior);
-				script.sequences.emplace_back(Sequence(content, interior, exterior));
-				script.sets.insert(s);
-			}
-			else if (isTransition(s)) {
-				string content = parseTransition(s);
-				if (script.sequences.size())
-					(*script.sequences.rbegin()).nodes.emplace_back(ScriptNode(NodeKind::Transition, content));
-				else
-					script.title.nodes.emplace_back(ScriptNode(NodeKind::Transition, content));
-			}
-			else if (isDialog(s)) {
-				string character;
-				string content = parseDialog(s, character, lines, i);
-				if (script.sequences.size())
-					(*script.sequences.rbegin()).nodes.emplace_back(ScriptNode(NodeKind::Dialog, character, content));
-				else
-					script.title.nodes.emplace_back(ScriptNode(NodeKind::Dialog, character, content));
-
-				size_t paren = character.find('(');
-				if (paren != string::npos)
-					character = character.substr(0, paren - 1);
-
-				script.characters.insert(character);
-			}
-			else {
-				// must be action
-				string content = s;
-
-				++i;
-				while (i < lines.size() && lines[i].length() > 0) {
-					content += lines[i] + "\n";
-					++i;
-				}
-
-				if (script.sequences.size())
-					(*script.sequences.rbegin()).nodes.emplace_back(ScriptNode(NodeKind::Action, content));
-				else
-					script.title.nodes.emplace_back(ScriptNode(NodeKind::Action, content));
+			if (kind == NodeKind::Dialog)
+			{
+				/// @TODO how to interpret a value with parentheses? What does the spec say...?
+				script->characters.insert(value);
 			}
 		}
+		void finalize_current_node()
+		{
+			if (curr_node.kind != NodeKind::Unknown)
+			{
+				curr_sequence->nodes.push_back(curr_node);
+				curr_node.kind = NodeKind::Unknown;
+				curr_node.content = "";
+			}
+		}
+		void append_text(const std::string& s)
+		{
+			if (curr_node.kind == NodeKind::Unknown)
+				curr_node.kind = NodeKind::Action;
+			if (curr_node.content.size())
+				curr_node.content += '\n';
+			curr_node.content += s;
+		}
 
+		void start_sequence(const string& name, bool interior, bool exterior)
+		{
+			finalize_current_sequence();
+			script->sequences.emplace_back(Sequence(name, interior, exterior));
+			script->sets.insert(script->sequences.back().as_string());
+			curr_sequence = &script->sequences.back();
+		}
+		void finalize_current_sequence()
+		{
+			finalize_current_node();
+			curr_sequence = nullptr;
+		}
+	};
+
+
+	Script Script::parseFountain(const std::string& text)
+	{
+		Script script;
+		ScriptEdit edit = { &script, &script.title };
+		std::vector<std::string> lines = TextScanner::SplitLines(text);
+
+		const char* title_page_tags[] = {
+			"Title:", "Credit:", "Author:", "Source:", "Draft Date:",
+			"Notes:", "Contact:", "Copyright:"
+		};
+
+		for (auto& line : lines)
+		{
+			auto s = StripLeadingWhitespace(line);
+
+			if (beginsWith(s, "==="))
+			{
+				edit.start_node(NodeKind::Divider, s);
+				edit.finalize_current_node();
+				continue;
+			}
+
+			bool titled = false;
+			for (auto t : title_page_tags)
+			{
+				if (beginsWith(s, t))
+				{
+					edit.start_node(NodeKind::KeyValue, std::string(t, strlen(t) - 1));
+					titled = true;
+					break;
+				}
+			}
+			if (titled)
+				continue;
+
+			if (isShot(s))
+			{
+				bool interior, exterior;
+				string shot_name = parseShot(s, interior, exterior);
+				edit.start_sequence(shot_name, interior, exterior);
+				continue;
+			}
+
+			if (isTransition(s))
+			{
+				edit.start_node(NodeKind::Transition, parseTransition(s));
+				edit.finalize_current_node();
+				continue;
+			}
+
+			if (isDialog(s))
+			{
+				if (s[0] == '@')
+					s = s.substr(1);
+				s = StripLeadingWhitespace(s);
+
+				edit.start_node(NodeKind::Dialog, s);
+				continue;
+			}
+
+			edit.append_text(s);
+		}
+
+		edit.finalize_current_sequence();
 		return script;
 	}
 
