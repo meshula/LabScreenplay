@@ -202,16 +202,19 @@ namespace lab
 		if (!lineIsUpperCase(input.c_str(), input.c_str() + input.length()))
 			return false;
 
-		const char * transitions[] = {
-			"CUT TO BLACK",
-			"cut to:",
+		const char * transitions[] = 
+		{
+			"CUT TO BLACK:",
 			"CUT TO:",
 			"INTERCUT WITH:",
+			"DISSOLVE:",
+			"WIPE:",
 			"FADE IN:",
+			"FADE OUT:",
 			"TITLE OVER:",
 			"SPLIT SCREEN:",
-			"OPENING CREDITS",
-			"END CREDITS"
+			"OPENING CREDITS:",
+			"END CREDITS:"
 		};
 
 		for (auto str : transitions)
