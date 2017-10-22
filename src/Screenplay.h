@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -79,6 +80,13 @@ struct Script
 
 	static Script parseFountain(const std::string& fountainFile);
 	static Script parseFountain(const filesystem::path& fountainFile);
+};
+
+struct ScriptMeta
+{
+	ScriptMeta(const Script&);
+	std::map<std::string, std::set<std::string>> sequence_characters;
+	std::map<std::string, std::vector<std::string>> character_dialog;
 };
 
 } // lab

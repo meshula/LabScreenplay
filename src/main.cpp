@@ -73,6 +73,25 @@ int main(int argc, char** argv) try
 			out << node.as_string() << "\n";
 	}
 
+	lab::ScriptMeta meta(script);
+
+	std::cout << "Location count: " << script.sets.size() << "\n";
+	std::cout << "Character count: " << script.characters.size() << "\n";
+	std::cout << "Sequence count:" << script.sequences.size() << "\n";
+
+	for (auto& sc : meta.sequence_characters)
+	{
+		std::cout << "Sequence: " << sc.first << "\n";
+		for (auto& c : sc.second)
+			std::cout << "   " << c << "\n";
+	}
+	std::cout << "\n";
+	for (auto& cd : meta.character_dialog)
+	{
+		std::cout << "Character: " << cd.first << ", line count: " << cd.second.size() << "\n";
+	}
+	std::cout << std::endl;
+
     return 0;
 }
 catch (...)

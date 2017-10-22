@@ -202,7 +202,7 @@ namespace lab
 		if (!lineIsUpperCase(input.c_str(), input.c_str() + input.length()))
 			return false;
 
-		const char * transitions[] = 
+		const char * transitions[] =
 		{
 			"CUT TO BLACK:",
 			"CUT TO:",
@@ -323,7 +323,7 @@ namespace lab
 		ScriptEdit edit = { &script, &script.title };
 		std::vector<std::string> lines = TextScanner::SplitLines(text);
 
-		const char* title_page_tags[] = 
+		const char* title_page_tags[] =
 		{
 			"Title:", "Credit:", "Author:", "Source:", "Draft Date:",
 			"Notes:", "Contact:", "Copyright:"
@@ -388,7 +388,7 @@ namespace lab
 	Script Script::parseFountain(const filesystem::path& fountainFile)
 	{
 		FILE* f = open_file(fountainFile);
-		if (!f) 
+		if (!f)
 			throw std::runtime_error("Couldn't open file");
 
 		fseek(f, 0, SEEK_END);
@@ -402,6 +402,31 @@ namespace lab
 		std::string txt(text, end);
 		delete[] text;
 		return parseFountain(txt);
+	}
+
+	std::map<std::string, std::set<std::string>> sequence_characters;
+	std::map<std::string, std::vector<std::string>> character_dialog;
+
+	ScriptMeta::ScriptMeta(const Script& script)
+	{
+		for (auto& seq : script.sequences)
+			sequence_characters.insert(std::make_pair(seq.name, std::set<std::string>()));
+		for (auto& chr : script.characters)
+			character_dialog.insert(std::make_pair(chr, std::vector<std::string>()));
+
+		for (auto& seq : script.sequences)
+		{
+			auto& data = sequence_characters.find(seq.name);
+			for (auto& n : seq.nodes)
+			{
+				if (n.kind == NodeKind::Dialog)
+				{
+					data->second.insert(n.key);
+					auto& dialog = character_dialog.find(n.key);
+					dialog->second.push_back(n.content);
+				}
+			}
+		}
 	}
 
 
