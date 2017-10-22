@@ -30,14 +30,20 @@ namespace lab
 		return "";
 	}
 
-	Sequence::Sequence(const std::string & name_, bool interior, bool exterior)
+	Sequence::Sequence(const std::string & name_, const std::string & location_, bool interior, bool exterior)
 		: interior(interior), exterior(exterior)
 	{
 		name = TextScanner::StripLeadingWhitespace(name_);
+		if (name.length() < 5)
+		{
+			std::string zeroes("00000");
+			name = zeroes.substr(0, 5 - name.length()) + name;
+		}
+		location = TextScanner::StripLeadingWhitespace(location_);
 	}
 
 	Sequence::Sequence(Sequence && rh)
-		: name(rh.name), interior(rh.interior), exterior(rh.exterior)
+		: name(rh.name), location(rh.location), interior(rh.interior), exterior(rh.exterior)
 	{
 		nodes.swap(rh.nodes);
 	}
@@ -47,6 +53,7 @@ namespace lab
 		interior = rh.interior;
 		exterior = rh.exterior;
 		name = rh.name;
+		location = rh.location;
 		nodes.swap(rh.nodes);
 		return *this;
 	}
@@ -60,7 +67,7 @@ namespace lab
 			res = "INT. ";
 		else if (exterior)
 			res = "EXT. ";
-		return res + name;
+		return /*name + ": " +*/ res + location;
 	}
 
 
@@ -69,6 +76,7 @@ namespace lab
 		, characters(std::move(rh.characters))
 		, sets(std::move(rh.sets))
 		, sequences(std::move(rh.sequences))
+		, sequence_index(std::move(rh.sequence_index))
 	{
 	}
 
@@ -302,12 +310,13 @@ namespace lab
 			curr_node.content += s;
 		}
 
-		void start_sequence(const string& name, bool interior, bool exterior)
+		void start_sequence(const string& name, const string& location, bool interior, bool exterior)
 		{
 			finalize_current_sequence();
-			script->sequences.emplace_back(Sequence(name, interior, exterior));
+			script->sequences.emplace_back(Sequence(name, location, interior, exterior));
 			script->sets.insert(script->sequences.back().as_string());
 			curr_sequence = &script->sequences.back();
+			script->sequence_index[curr_sequence->name] = script->sequences.size() - 1;
 		}
 		void finalize_current_sequence()
 		{
@@ -356,8 +365,9 @@ namespace lab
 			if (isShot(s))
 			{
 				bool interior, exterior;
-				string shot_name = parseShot(s, interior, exterior);
-				edit.start_sequence(shot_name, interior, exterior);
+				string location = parseShot(s, interior, exterior);
+				string shot_name = std::to_string(script.sequences.size() + 1);
+				edit.start_sequence(shot_name, location, interior, exterior);
 				continue;
 			}
 
@@ -403,9 +413,6 @@ namespace lab
 		delete[] text;
 		return parseFountain(txt);
 	}
-
-	std::map<std::string, std::set<std::string>> sequence_characters;
-	std::map<std::string, std::vector<std::string>> character_dialog;
 
 	ScriptMeta::ScriptMeta(const Script& script)
 	{

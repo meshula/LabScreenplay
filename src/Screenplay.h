@@ -56,13 +56,14 @@ struct ScriptNode
 struct Sequence
 {
 	Sequence() = default;
-	Sequence(const std::string & name_, bool interior, bool exterior);
+	Sequence(const std::string & name_, const std::string & location_, bool interior, bool exterior);
 	Sequence(Sequence && rh);
 	Sequence & operator=(Sequence && rh);
 
 	std::string as_string() const;
 
 	std::string name;
+	std::string location;
 	bool interior = false;
 	bool exterior = false;
 	std::vector<ScriptNode> nodes;
@@ -77,6 +78,7 @@ struct Script
 	std::set<std::string> characters;
 	std::set<std::string> sets;
 	std::vector<Sequence> sequences;
+	std::map<std::string, int> sequence_index;
 
 	static Script parseFountain(const std::string& fountainFile);
 	static Script parseFountain(const filesystem::path& fountainFile);

@@ -81,9 +81,13 @@ int main(int argc, char** argv) try
 
 	for (auto& sc : meta.sequence_characters)
 	{
-		std::cout << "Sequence: " << sc.first << "\n";
+		int idx = script.sequence_index[sc.first];
+		string location = script.sequences[idx].location;
+		std::cout << "Sequence: " << sc.first << " - " << location << "\n";
 		for (auto& c : sc.second)
+		{
 			std::cout << "   " << c << "\n";
+		}
 	}
 	std::cout << "\n";
 	for (auto& cd : meta.character_dialog)
