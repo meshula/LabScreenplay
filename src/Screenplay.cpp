@@ -314,7 +314,9 @@ namespace lab
 		{
 			finalize_current_sequence();
 			script->sequences.emplace_back(Sequence(name, location, interior, exterior));
-			script->sets.insert(script->sequences.back().as_string());
+
+            auto set_name = ToUpper(script->sequences.back().as_string());                        
+            script->sets.insert(set_name);
 			curr_sequence = &script->sequences.back();
 			script->sequence_index[curr_sequence->name] = script->sequences.size() - 1;
 		}

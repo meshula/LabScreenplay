@@ -22,7 +22,7 @@ void stringcallback(const std::string& str)
 
 int main(int argc, char** argv) try
 {
-	std::cout << "LabScreenplay 20171015.1843" << "\n";
+	std::cout << "LabScreenplay 20171202.1850" << "\n";
 
 	char * text = nullptr;
     char * end = nullptr;
@@ -73,11 +73,24 @@ int main(int argc, char** argv) try
 			out << node.as_string() << "\n";
 	}
 
+
 	lab::ScriptMeta meta(script);
+
+    std::cout << "\nSummary:\n";
+    std::cout << "----------------------------------------------------\n";
 
 	std::cout << "Location count: " << script.sets.size() << "\n";
 	std::cout << "Character count: " << script.characters.size() << "\n";
 	std::cout << "Sequence count:" << script.sequences.size() << "\n";
+
+    std::cout << "\nLocations:\n";
+    std::cout << "----------------------------------------------------\n";
+
+    for (auto& l : script.sets)
+        std::cout << l << "\n";
+
+    std::cout << "\nSequences:\n";
+    std::cout << "----------------------------------------------------\n";
 
 	for (auto& sc : meta.sequence_characters)
 	{
@@ -90,7 +103,11 @@ int main(int argc, char** argv) try
 		}
 	}
 	std::cout << "\n";
-	for (auto& cd : meta.character_dialog)
+    
+    std::cout << "\nCharacters:\n";
+    std::cout << "----------------------------------------------------\n";
+    
+    for (auto& cd : meta.character_dialog)
 	{
 		std::cout << "Character: " << cd.first << ", line count: " << cd.second.size() << "\n";
 	}
