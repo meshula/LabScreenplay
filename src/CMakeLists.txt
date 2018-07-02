@@ -26,7 +26,7 @@ target_link_libraries(LabScreenplay optimized
 if (MSVC_IDE)
     # hack to get around the "Debug" and "Release" directories cmake tries to add on Windows
     #set_target_properties (LabScreenplay PROPERTIES PREFIX "../")
-    set_target_properties(LabScreenplay PROPERTIES IMPORT_PREFIX "../")
+    #set_target_properties(LabScreenplay PROPERTIES IMPORT_PREFIX "../")
 endif()
 
 install (TARGETS LabScreenplay RUNTIME DESTINATION "${LOCAL_ROOT}/bin")

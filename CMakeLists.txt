@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.4)
 project(LabScreenplay)
 set(CMAKE_BUILD_TYPE Release)
 
-set(LOCAL_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../local)
 set(LABSCREENPLAY_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 # override cmake install prefix if it's not set,
